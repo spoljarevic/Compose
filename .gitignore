@@ -1,0 +1,8 @@
+# Defaults
+.env
+podman-compose.yml.bak
+
+#Folder Specific
+nginx-proxy-manager/data/*
+nginx-proxy-manager/letsencrypt/*
+
