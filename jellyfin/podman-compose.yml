@@ -1,0 +1,21 @@
+services:
+  jellyfin:
+    image: docker.io/jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    ports:
+      - "8068:8096"
+    volumes:
+      - /mnt/storage/jellyfin/data/config:/config:Z
+      - /mnt/storage/jellyfin/data/cache:/cache:Z
+      - /mnt/storage/jellyfin/media:/media:z
+  jellyfin-nsfw:
+    image: docker.io/jellyfin/jellyfin:latest
+    container_name: jellyfin-nsfw
+    restart: unless-stopped
+    ports:
+      - "8069:8096"
+    volumes:
+      - /mnt/storage/jellyfin-nsfw/data/config:/config:Z
+      - /mnt/storage/jellyfin-nsfw/data/cache:/cache:Z
+      - /mnt/storage/jellyfin-nsfw/media:/media:z

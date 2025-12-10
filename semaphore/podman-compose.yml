@@ -1,0 +1,49 @@
+version: "3.9"   # optional, but good practice
+
+services:
+  semaphore_db:
+    image: mysql:8
+    environment:
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_RANDOM_ROOT_PASSWORD: ${MYSQL_RANDOM_ROOT_PASSWORD}
+    volumes:
+      - /mnt/storage/semaphore/sql:/var/lib/mysql:Z
+    networks:
+      - semaphore_network
+
+  semaphore:
+    image: semaphoreui/semaphore:v2.16.43-powershell7.5.0
+    ports:
+      - "3010:3000"
+    depends_on:
+      - semaphore_db
+    environment:
+      SEMAPHORE_DB_DIALECT: ${SEMAPHORE_DB_DIALECT}
+      SEMAPHORE_DB_HOST: ${SEMAPHORE_DB_HOST}
+      SEMAPHORE_DB_NAME: ${SEMAPHORE_DB_NAME}
+      SEMAPHORE_DB_USER: ${SEMAPHORE_DB_USER}
+      SEMAPHORE_DB_PASS: "${SEMAPHORE_DB_PASS}"
+      SEMAPHORE_ADMIN: ${SEMAPHORE_ADMIN}
+      SEMAPHORE_ADMIN_PASSWORD: ${SEMAPHORE_ADMIN_PASSWORD}
+      SEMAPHORE_ADMIN_NAME: ${SEMAPHORE_ADMIN_NAME}
+      SEMAPHORE_ADMIN_EMAIL: ${SEMAPHORE_ADMIN_EMAIL}
+      SEMAPHORE_SCHEDULE_TIMEZONE: "${SEMAPHORE_SCHEDULE_TIMEZONE}"
+      SEMAPHORE_TOTP_ENABLED: "${SEMAPHORE_TOTP_ENABLED}"
+      SEMAPHORE_TOTP_ALLOW_RECOVERY: "${SEMAPHORE_TOTP_ALLOW_RECOVERY}"
+      SEMAPHORE_TELEGRAM_ALERT: "${SEMAPHORE_TELEGRAM_ALERT}"
+      SEMAPHORE_TELEGRAM_CHAT: "${SEMAPHORE_TELEGRAM_CHAT}"
+      SEMAPHORE_TELEGRAM_TOKEN: "${SEMAPHORE_TELEGRAM_TOKEN}"
+      ANSIBLE_HOST_KEY_CHECKING: "${ANSIBLE_HOST_KEY_CHECKING}"
+      SEMAPHORE_AUTO_MIGRATE: "${SEMAPHORE_AUTO_MIGRATE}"
+    volumes:
+      - /mnt/storage/semaphore/data:/var/lib/semaphore:Z
+      - /mnt/storage/semaphore/config:/etc/semaphore:Z
+      - /mnt/storage/semaphore/tmp:/tmp/semaphore:Z
+    networks:
+      - semaphore_network
+
+networks:
+  semaphore_network:
+    driver: bridge
