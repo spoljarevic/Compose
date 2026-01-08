@@ -8,7 +8,7 @@ services:
     image: docker.io/library/wordpress:latest
     ports:
       - "8040:80"
-    env_file: .env               # <-- pulls variables from .env
+    env_file: .env
     environment:
       - WORDPRESS_DB_HOST=${WORDPRESS_DB_HOST}
       - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
@@ -20,7 +20,7 @@ services:
     command: '--default-authentication-plugin=mysql_native_password'
     volumes:
       - db_data:/var/lib/mysql
-    env_file: .env               # <-- pulls variables from .env
+    env_file: .env
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
