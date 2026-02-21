@@ -9,12 +9,12 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_RANDOM_ROOT_PASSWORD: ${MYSQL_RANDOM_ROOT_PASSWORD}
     volumes:
-      - /mnt/storage/semaphore/sql:/var/lib/mysql:Z
+      - semaphore-db:/var/lib/mysql:Z
     networks:
       - semaphore_network
 
   semaphore:
-    image: semaphoreui/semaphore:v2.16.43-powershell7.5.0
+    image: public.ecr.aws/semaphore/pro/server:v2.16.51
     ports:
       - "3010:3000"
     depends_on:
@@ -38,11 +38,17 @@ services:
       ANSIBLE_HOST_KEY_CHECKING: "${ANSIBLE_HOST_KEY_CHECKING}"
       SEMAPHORE_AUTO_MIGRATE: "${SEMAPHORE_AUTO_MIGRATE}"
     volumes:
-      - /mnt/storage/semaphore/data:/var/lib/semaphore:Z
-      - /mnt/storage/semaphore/config:/etc/semaphore:Z
-      - /mnt/storage/semaphore/tmp:/tmp/semaphore:Z
+      - semaphore-data:/var/lib/semaphore:Z
+      - semaphore-config:/etc/semaphore:Z
+      - semaphore-tmp:/tmp/semaphore:Z
     networks:
       - semaphore_network
+
+volumes:
+  semaphore-db:
+  semaphore-data:
+  semaphore-config:
+  semaphore-tmp:
 
 networks:
   semaphore_network:
