@@ -1,0 +1,51 @@
+services:
+  tubearchivist:
+    container_name: tubearchivist
+    restart: unless-stopped
+    image: docker.io/bbilly1/tubearchivist
+    ports:
+      - 8000:8000
+    volumes:
+      - tube-media:/youtube
+      - tube-cache:/cache
+    env_file:
+      - tubearchivist.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/"]
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - archivist-es
+      - archivist-redis
+  archivist-redis:
+    image: docker.io/library/redis
+    container_name: archivist-redis
+    restart: unless-stopped
+    expose:
+      - "6379"
+    volumes:
+      - tube-redis:/data
+    depends_on:
+      - archivist-es
+  archivist-es:
+    image: docker.io/bbilly1/tubearchivist-es         # only for amd64, or use official es 8.19.0
+    container_name: archivist-es
+    restart: unless-stopped
+    env_file:
+      - archivist-es.env
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - tube-es:/usr/share/elasticsearch/data    # check for permission error when using bind mount, see readme
+    expose:
+      - "9200"
+
+volumes:
+  tube-media:
+  tube-cache:
+  tube-redis:
+  tube-es:

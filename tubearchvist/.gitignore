@@ -1,0 +1,3 @@
+# Real env files contain secrets - keep them local, only push template.*.env
+*.env
+!template.*.env
