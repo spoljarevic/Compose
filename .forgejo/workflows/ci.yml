@@ -1,0 +1,85 @@
+---
+name: Compose CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # Every compose file must parse and interpolate with podman-compose
+  check:
+    name: podman-compose config
+    runs-on: codeberg-small
+    container:
+      image: docker.io/library/node:20-trixie
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+
+      - name: Install podman-compose
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends podman podman-compose >/dev/null
+          podman-compose --version | tail -1
+
+      - name: Every compose file is valid
+        run: |
+          failed=0
+          for file in */podman-compose.yml; do
+            dir=$(dirname "$file")
+            [ -e "$dir/env.example" ] && [ ! -e "$dir/.env" ] && cp "$dir/env.example" "$dir/.env"
+            if (cd "$dir" && podman-compose -f podman-compose.yml config >/dev/null); then
+              echo "ok: $file"
+            else
+              echo "::error file=$file::podman-compose config failed"
+              failed=1
+            fi
+          done
+          exit "$failed"
+
+  # Start every stack with rootless podman-compose in a real Rocky Linux 9 VM
+  # (SELinux enforcing) and check that it comes up, stays up and answers on
+  # its published ports.
+  stacks:
+    name: Stacks on Rocky Linux 9 VM (rootless podman)
+    needs: check
+    # Runs on the self-hosted runner (Codeberg's hosted runners are limited
+    # to 10 min / 8 GB). Pull requests from forks never reach that machine.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: heavy-duty
+    timeout-minutes: 120
+    container:
+      image: docker.io/library/node:20-bookworm
+    env:
+      SSH_OPTS: -p 2222 -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+
+      - name: Install QEMU
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends \
+            qemu-system-x86 qemu-utils genisoimage openssh-client >/dev/null
+          mkdir -p ~/.ssh
+          ssh-keygen -q -t ed25519 -N '' -f ~/.ssh/id_ed25519
+
+      - name: Boot Rocky Linux 9 VM
+        run: bash .forgejo/scripts/start-rocky-vm.sh
+
+      - name: Copy the repository into the VM
+        run: |
+          mkdir -p /tmp/Compose
+          cp -r ./*/ .forgejo /tmp/Compose/
+          scp -q -P 2222 -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            -r /tmp/Compose ls@127.0.0.1:
+
+      - name: Start and test every stack
+        run: ssh $SSH_OPTS ls@127.0.0.1 "bash Compose/.forgejo/scripts/test-compose.sh"
+
+      - name: VM serial log
+        if: failure()
+        run: tail -50 /tmp/rocky-vm/serial.log || true

@@ -1,3 +1,6 @@
+> [!NOTE]
+> This project will likely not receive any updates. The last test, performed on 31.10.2026, confirmed that all files work. They may not work in the future.
+
 # Notes about this Project
 
 All the code gets published to **Codeberg**. All other platforms are just mirrors.

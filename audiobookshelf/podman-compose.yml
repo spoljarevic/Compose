@@ -7,5 +7,5 @@ services:
       - /mnt/storage/audiobookshelf/audiobooks:/audiobooks:Z
       - /mnt/storage/audiobookshelf/podcasts:/podcasts:Z
       - /mnt/storage/audiobookshelf/metadata:/metadata:Z
-      - /mnt/storage/audibookshelf/config:/config:Z
+      - /mnt/storage/audiobookshelf/config:/config:Z
 
