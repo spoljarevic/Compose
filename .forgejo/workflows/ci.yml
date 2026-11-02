@@ -14,7 +14,7 @@ jobs:
   # Every compose file must parse and interpolate with podman-compose
   check:
     name: podman-compose config
-    runs-on: codeberg-small
+    runs-on: small
     container:
       image: docker.io/library/node:20-trixie
     steps:
